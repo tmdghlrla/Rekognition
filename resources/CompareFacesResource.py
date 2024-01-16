@@ -33,7 +33,7 @@ class CompareFacesResource(Resource) :
         draw = ImageDraw.Draw(image)
         w, h = image.size
         
-        if {face_matches == True}:
+        for face_matches in data['FaceMatches']:
             name = format(similarity, ".6s") + '%'
             x0 = int(position['Left'] * w)
             y0 = int(position['Top'] * h)
