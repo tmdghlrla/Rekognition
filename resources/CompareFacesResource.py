@@ -3,6 +3,7 @@ from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_requir
 from flask_restful import Resource
 from config import Config
 from mysql.connector import Error
+from PIL import Image, ImageDraw
 
 from datetime import datetime
 from io import BytesIO
@@ -11,16 +12,25 @@ import boto3
 
 class CompareFacesResource(Resource) :
     def post(self) :               
-
+        
+        # 포스트맨에서 기준이 될 이미지 파일과
+        # 비교할 이미지 파일을 가져온다.
         source_file = request.files.get('source_file')
         target_file = request.files.get('target_file')
 
         if source_file is None or target_file is None :
             return {"error" : '파일을 업로드 하세요'}, 400
         
-        face_matches = self.compare_faces(source_file.read(), target_file.read())
 
-        return {'result' : 'success', "items" : face_matches,}, 200
+        data = self.compare_faces(source_file.read(),
+                                           target_file.read())
+        
+        face_matches = data['FaceMatches']
+        face_unmatches = data['UnmatchedFaces']
+
+        return {'result' : 'success', 
+                "matchItems" : face_matches,
+                "unMatchItems" : face_unmatches}, 200
     
     def compare_faces(self, sourceFile, targetFile):
 
@@ -39,12 +49,9 @@ class CompareFacesResource(Resource) :
         for faceMatch in response['FaceMatches']:
             position = faceMatch['Face']['BoundingBox']
             similarity = str(faceMatch['Similarity'])
-            print('감지된 얼굴에서 ' +
-                str(position['Left']) + ' ' +
-                str(position['Top']) +
-                ' matches with ' + similarity + '% confidence')
+            
 
         imageSource.close()
         imageTarget.close()
 
-        return response['FaceMatches']
+        return response
