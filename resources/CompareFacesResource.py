@@ -62,7 +62,7 @@ class CompareFacesResource(Resource) :
                 }, 200
     
 
-    # 얼굴 비교
+    # 얼굴 감지 및 비교
     def compare_faces(self, sourceFile, targetFile):
 
         client = boto3.client('rekognition',
